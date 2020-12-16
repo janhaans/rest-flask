@@ -12,7 +12,11 @@ class Item(Resource):
     parser.add_argument('price', type=float, required=True, help='Price is required')
 
     def get(self, name):
-        pass
+        item = next(filter(lambda x: x['name']== name, items), None)
+        if item:
+            return item, 200
+        else:
+            return {'message': f'Item {name} is not in the list'}, 404
 
     def post(self, name):
         if next(filter(lambda x: x['name']== name, items), None):
