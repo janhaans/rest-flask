@@ -1,11 +1,17 @@
 from flask import Flask, request
 from flask_restful import Api, Resource, reqparse
-#from flask_jwt import JWT, jwt_required
+from user import User, users, username_mapping, userid_mapping
+from security import authenticate, identity
+from flask_jwt import JWT, jwt_required, current_identity
+from werkzeug.security import safe_str_cmp
 
 app = Flask(__name__)
+app.debug = True
+app.config['SECRET_KEY'] = 'super-secret'
+jwt = JWT(app, authenticate, identity)
 api = Api(app)
 
-items=[]
+items = []
 
 class Item(Resource):
     parser = reqparse.RequestParser()
@@ -27,7 +33,14 @@ class Item(Resource):
         return new_item, 201
 
     def put(self, name):
-        pass
+        data = Item.parser.parse_args()
+        item = next(filter(lambda x: x['name']== name, items), None)
+        if item:
+            item.update(data)
+        else:
+            item = {'name': name, 'price': data['price']}
+            item.append(item)
+        return item, 201
 
     def delete(self, name):
         pass
@@ -37,5 +50,10 @@ class Items(Resource):
 
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(Items, '/items')
+
+@app.route('/protected')
+@jwt_required()
+def protected():
+    return f'{current_identity}', 200
 
 app.run(host='0.0.0.0', port=5000)
