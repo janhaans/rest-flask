@@ -43,6 +43,9 @@ class UserRegister(Resource):
 
     def post(self):
         data = UserRegister.parser.parse_args()
+        user = User.get_by_username(data['username'])
+        if user:
+            return {'message': f'User {user.username} is already registered'}, 400 
         
         connection = sqlite3.connect('data/data.db')
         cursor = connection.cursor()
