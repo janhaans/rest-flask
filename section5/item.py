@@ -1,7 +1,6 @@
+import sqlite3
 from flask_restful import Resource, reqparse
 from flask_jwt import jwt_required, current_identity
-
-items = []
 
 class Item(Resource):
     parser = reqparse.RequestParser()
@@ -9,35 +8,83 @@ class Item(Resource):
 
     @jwt_required()
     def get(self, name):
-        item = next(filter(lambda x: x['name']== name, items), None)
-        if item:
-            return item, 200
+        connection = sqlite3.connect('data/data.db')
+        cursor = connection.cursor()
+        query = 'SELECT * FROM items WHERE name=?'
+        result = cursor.execute(query, (name,))
+        row = result.fetchone()
+        connection.close()
+        if row:
+            return {'id': row[0], 'name': row[1], 'price': row[2]}, 200
         else:
-            return {'message': f'Item {name} is not in the list'}, 404
+            return {'message': f'Item {name} is not in the database'}, 404
 
     def post(self, name):
-        if next(filter(lambda x: x['name']== name, items), None):
-            return {'message': f'Item {name} is already in the list'}, 400
+        connection = sqlite3.connect('data/data.db')
+        cursor = connection.cursor()
+        
+        query = 'SELECT * FROM items WHERE name=?'
+        result = cursor.execute(query, (name,))
+        row = result.fetchone()
+        if row:
+            connection.close()
+            return {'message': f'Item {name} is already in the database'}, 400
+        
         data = Item.parser.parse_args()
-        new_item = {'name': name, 'price': data['price']}
-        items.append(new_item)
-        return new_item, 201
+        
+        query = 'INSERT INTO items VALUES (NULL, ?, ?)'
+        cursor.execute(query, (name, data['price']))
+        connection.commit()
+        connection.close()
+        
+        return {'message': f'Item {name} is successfully created'}, 201
 
     def put(self, name):
         data = Item.parser.parse_args()
-        item = next(filter(lambda x: x['name']== name, items), None)
-        if item:
-            item.update(data)
+
+        connection = sqlite3.connect('data/data.db')
+        cursor = connection.cursor()
+
+        query = 'SELECT * FROM items WHERE name=?'
+        result = cursor.execute(query, (name,))
+        row = result.fetchone()
+        if row:
+            query = 'UPDATE items SET price=? WHERE name=?'
+            cursor.execute(query, (data['price'], name))
         else:
-            item = {'name': name, 'price': data['price']}
-            item.append(item)
-        return item, 201
+            query = 'INSERT INTO items VALUES (NULL, ?, ?)'
+            cursor.execute(query, (name, data['price']))
+        
+        connection.commit()
+        connection.close()
+        
+        return {'message': f'Item {name} is successfully created'}, 201
+        
 
     def delete(self, name):
-        pass
+        connection = sqlite3.connect('data/data.db')
+        cursor = connection.cursor()
+
+        query = 'DELETE FROM items WHERE name=?'
+        cursor.execute(query, (name,))
+        connection.commit()
+        connection.close()
+        
+        return {'message': f'Item {name} is successfully deleted'}, 201
 
 class Items(Resource):
 
     @jwt_required()
     def get(self):
+        connection = sqlite3.connect('data/data.db')
+        cursor = connection.cursor()
+        
+        query = 'SELECT * FROM items'
+        result = cursor.execute(query)
+
+        items = []
+        for row in result:
+            items.append({'id': row[0], 'name': row[1], 'price': row[2]})
+
+        connection.close()
         return {"items": items}, 200
