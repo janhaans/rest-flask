@@ -31,35 +31,31 @@ class Item(Resource):
         new_item = ItemModel(name, data['price'])
 
         try:
-            new_item.create_item()
+            new_item.save_item()
         except:
-           return {'message': 'Could not create item, because of database error'}, 500
+           return {'message': 'Could not save item, because of database error'}, 500
 
-        return {'message': f'Item {name} is successfully created'}, 201
+        return {'message': f'Item {name} is successfully saved'}, 201
 
     def put(self, name):
         data = Item.parser.parse_args()
-        updated_item = ItemModel(name, data['price'])
 
         try:
             item = ItemModel.get_item(name)
         except:
-            return {'message': 'Could not update item, because of database error'}, 500
+            return {'message': 'Could not save item, because of database error'}, 500
 
         if item:
-            try:
-                updated_item.update_item()
-            except:
-                return {'message': 'Could not update item, because of database error'}, 500
-
-            return {'message': f'Item {name} is successfully updated'}, 201
+            item.price = data['price']
         else:
-            try:
-                updated_item.create_item()
-            except:
-                return {'message': 'Could not update item, because of database error'}, 500
-
-            return {'message': f'Item {name} is successfully created'}, 201 
+            item = ItemModel(name, data['price'])
+           
+        try:
+            item.save_item()
+        except:
+            return {'message': 'Could not save item, because of database error'}, 500
+        
+        return {'message': f'Item {name} is successfully saved'}, 201 
 
     def delete(self, name):
         try:
@@ -69,7 +65,7 @@ class Item(Resource):
 
         if item:
             try:
-                ItemModel.delete_item(name)
+                item.delete_item()
             except:
                 return {'message': 'Could not delete item, because of database error'}, 500
 
@@ -85,6 +81,10 @@ class Items(Resource):
         try:
             items = ItemModel.get_items()
         except:
-            return {'message': 'Could not get items, becaause of database error'}, 500
+            return {'message': 'Could not get items, because of database error'}, 500
+        
+        item_list = []
+        for item in items:
+            item_list.append(item.json())
 
-        return {"items": items}, 200
+        return {"items": item_list}, 200
