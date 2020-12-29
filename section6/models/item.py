@@ -29,6 +29,6 @@ class ItemModel(db.Model):
 
     @classmethod
     def get_items(cls):
-        return ItemModel.query.all()
+        return cls.query.all()
         
     

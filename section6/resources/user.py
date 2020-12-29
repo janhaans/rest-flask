@@ -18,9 +18,11 @@ class User(Resource):
         if user:
             return {'message': f'User {user.username} is already registered'}, 400 
         
+        new_user = UserModel(data['username'], data['passwd'])
+
         try:
-            UserModel.insert(data['username'],data['passwd'])
+            new_user.save()
         except:
-            return {'message': 'Could not create user, because of database error'}, 500
+            return {'message': '(2)Could not create user, because of database error'}, 500
         
         return {'message': 'User created successfully'}, 201
