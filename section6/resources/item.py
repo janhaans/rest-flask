@@ -16,7 +16,7 @@ class Item(Resource):
 
         if item:
             return item.json(), 200
-        return {'message': f'Item {name} is not in the database'}
+        return {'message': f'Item {name} is not in the database'}, 400
         
     def post(self, name):
         try:
@@ -63,11 +63,19 @@ class Item(Resource):
 
     def delete(self, name):
         try:
-            ItemModel.delete_item(name)
+            item = ItemModel.get_item(name)
         except:
-            return {'message': 'Could not delete item, because of database error'}, 500
+            return {'message': 'Could not get item, because of database error'}, 500
 
-        return {'message': f'Item {name} is successfully deleted'}, 201
+        if item:
+            try:
+                ItemModel.delete_item(name)
+            except:
+                return {'message': 'Could not delete item, because of database error'}, 500
+
+            return {'message': f'Item {name} is successfully deleted'}, 201
+        else:
+            return {'message': f'Item {name} is not in database'}, 400
 
 
 class Items(Resource):
