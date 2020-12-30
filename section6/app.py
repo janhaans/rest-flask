@@ -14,6 +14,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 jwt = JWT(app, authenticate, identity)
 api = Api(app)
 
+@app.before_first_request
+def create_database():
+    db.create_all()
+
 api.add_resource(Item, '/item/<string:name>')
 api.add_resource(Items, '/items')
 api.add_resource(User, '/register')

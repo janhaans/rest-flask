@@ -82,9 +82,5 @@ class Items(Resource):
             items = ItemModel.get_items()
         except:
             return {'message': 'Could not get items, because of database error'}, 500
-        
-        item_list = []
-        for item in items:
-            item_list.append(item.json())
 
-        return {"items": item_list}, 200
+        return {"items": [item.json() for item in items]}, 200
