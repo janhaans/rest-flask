@@ -6,6 +6,7 @@ from models.item import ItemModel
 class Item(Resource):
     parser = reqparse.RequestParser()
     parser.add_argument('price', type=float, required=True, help='Price is required')
+    parser.add_argument('store_id', type=int, required=True, help='Store_id is required')
 
     @jwt_required()
     def get(self, name):
@@ -16,7 +17,7 @@ class Item(Resource):
 
         if item:
             return item.json(), 200
-        return {'message': f'Item {name} is not in the database'}, 400
+        return {'message': f'Item {name} is not in the database'}, 404
         
     def post(self, name):
         try:
@@ -28,7 +29,7 @@ class Item(Resource):
             return {'message': f'Item {name} is already in the database'}, 400
         
         data = Item.parser.parse_args()
-        new_item = ItemModel(name, data['price'])
+        new_item = ItemModel(name, data['price'], data['store_id'])
 
         try:
             new_item.save_item()
@@ -47,8 +48,9 @@ class Item(Resource):
 
         if item:
             item.price = data['price']
+            item.store_id = data['store_id']
         else:
-            item = ItemModel(name, data['price'])
+            item = ItemModel(name, data['price'], data['store_id'])
            
         try:
             item.save_item()

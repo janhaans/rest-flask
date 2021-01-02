@@ -2,6 +2,7 @@ from flask import Flask
 from flask_restful import Api
 from resources.user import User
 from resources.item import Item, Items
+from resources.store import Store, Stores
 from security import authenticate, identity
 from flask_jwt import JWT, jwt_required, current_identity
 from db import db
@@ -19,7 +20,9 @@ def create_database():
     db.create_all()
 
 api.add_resource(Item, '/item/<string:name>')
+api.add_resource(Store, '/store/<string:name>')
 api.add_resource(Items, '/items')
+api.add_resource(Stores, '/stores')
 api.add_resource(User, '/register')
 
 @app.route('/protected')
