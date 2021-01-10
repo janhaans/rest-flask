@@ -6,11 +6,15 @@ from resources.store import Store, Stores
 from security import authenticate, identity
 from flask_jwt import JWT, jwt_required, current_identity
 from db import db
+import os
+
+password = os.getenv('POSTGRES_PASSWORD')
+secret_key = os.getenv('SECRET_KEY')
 
 app = Flask(__name__)
 app.debug = True
-app.config['SECRET_KEY'] = 'super-secret'
-app.config['SQLALCHEMY_DATABASE_URI'] = r'postgresql://postgres:mysecret@db/postgres'
+app.config['SECRET_KEY'] = secret_key
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://postgres:{password}@db/postgres'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 jwt = JWT(app, authenticate, identity)
 api = Api(app)

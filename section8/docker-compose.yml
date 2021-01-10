@@ -6,9 +6,12 @@ services:
     volumes:
       - ./data/:/var/lib/postgresql/data/
     environment:
-      POSTGRES_PASSWORD: mysecret
-    user: 1000:1000 
+      POSTGRES_PASSWORD: "{POSTGRES_PASSWORD}"
+    user: "${UID}:${GID}" 
   api:
     build: .
     ports:
       - 80:80
+    environment:
+      POSTGRES_PASSWORD: "{POSTGRES_PASSWORD}"
+      SECRET_KEY: "{SECRET_KEY}"
